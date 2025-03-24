@@ -69,13 +69,13 @@ st.markdown('<h1 class="main-header">CSV Processor 📊</h1>', unsafe_allow_html
 st.markdown('<p class="sub-header">Upload a CSV and analyze EEG data</p>', unsafe_allow_html=True)
 
 # Add a divider
-st.divider()
+st.markdown("---")
 
 # API Connection section
 st.markdown('<div class="api-section">', unsafe_allow_html=True)
 st.subheader("Process CSV File")
 
-api_url = st.text_input("FastAPI URL", "http://127.0.0.1:8000")
+api_url = st.text_input("FastAPI URL", "https://neuropredict-api-773733892552.us-central1.run.app/")
 
 # CSV file upload
 uploaded_file = st.file_uploader("Choose a CSV file", type=['csv'])
