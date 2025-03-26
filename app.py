@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 # Set page configuration - MUST be the first Streamlit command
 st.set_page_config(
-    page_title="NeuroPredict: Machine Learning Approach to EEG Classification",
+    page_title="NeuroPredict: Machine Learning EEG Classification",
     page_icon="📊",
     layout="centered",
     initial_sidebar_state="collapsed",
