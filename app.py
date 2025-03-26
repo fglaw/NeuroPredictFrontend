@@ -65,7 +65,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Main app
-st.markdown('<h1 class="main-header">CSV Processor 📊</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">NeuroPredict: Machine Learning EEG Classification 📊</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Upload a CSV and analyze EEG data</p>', unsafe_allow_html=True)
 
 # Add a divider
