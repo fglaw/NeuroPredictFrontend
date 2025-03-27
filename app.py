@@ -101,7 +101,7 @@ with col3:
     if st.button("🟡 Rocket"):
         model_selected = "Rocket"
 with col4:
-    if st.button("🔴 LSTM-Rocket Hybrid"):
+    if st.button("🔴 LSTM-Rocket"):
         model_selected = "Hybrid"
 
 
