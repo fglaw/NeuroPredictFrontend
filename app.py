@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime, timedelta
+import os
 
 # Set page configuration - MUST be the first Streamlit command
 st.set_page_config(
@@ -61,12 +62,44 @@ st.markdown("""
     .prediction-seizure {
         background-color: #FFCCCC; /* Light red */
     }
+    .button-container {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+    }
+    .stButton>button {
+        flex: 1;
+        background-color: #4682B4;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .stButton>button:hover {
+        background-color: #357ABD;
+    }
+    .summary-box {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border: 1px solid #dee2e6;
+    }
+    .model-info {
+        background-color: #e3f2fd;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+        color: #1976d2;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # Main app
 st.markdown('<h1 class="main-header">CSV Processor 📊</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">Upload a CSV and analyze EEG data</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">Analyzing EEG data from random_test_samples.csv</p>', unsafe_allow_html=True)
 
 # Add a divider
 st.markdown("---")
@@ -77,37 +110,90 @@ st.subheader("Process CSV File")
 
 api_url = st.text_input("FastAPI URL", "https://neuropredict-api-773733892552.us-central1.run.app/")
 
-# CSV file upload
-uploaded_file = st.file_uploader("Choose a CSV file", type=['csv'])
-
-# Initialize a session state for API response
+# Initialize session state for API response and selected model
 if 'api_response' not in st.session_state:
     st.session_state.api_response = None
+if 'selected_model' not in st.session_state:
+    st.session_state.selected_model = None
 
-if uploaded_file is not None:
-    # Preview the CSV data
-    df = pd.read_csv(uploaded_file)
-    st.write("Preview of your CSV data:")
+# Load the CSV file directly
+try:
+    df = pd.read_csv("data/random_test_samples.csv")
+    st.write("Preview of the CSV data:")
     st.dataframe(df.head(5))
     
-    # Reset file pointer to beginning
-    uploaded_file.seek(0)
+    # Add model selection buttons
+    st.markdown('<div class="button-container">', unsafe_allow_html=True)
     
-    # Automatically process the file once uploaded
-    try:
-        files = {"csv_file": uploaded_file}
-        with st.spinner("Processing CSV with the API..."):
-            response = requests.post(api_url, files=files)
-        
-        if response.status_code == 200:
-            result = response.json()
-            st.success(f"CSV processed successfully!")
-            st.session_state.api_response = result
-            st.json(result)
-        else:
-            st.error(f"Error: {response.status_code} - {response.text}")
-    except Exception as e:
-        st.error(f"Error connecting to API: {e}")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("Model 1", key="model1"):
+            st.session_state.selected_model = 1
+            st.session_state.api_response = None
+    
+    with col2:
+        if st.button("Model 2", key="model2"):
+            st.session_state.selected_model = 2
+            st.session_state.api_response = None
+    
+    with col3:
+        if st.button("Model 3", key="model3"):
+            st.session_state.selected_model = 3
+            st.session_state.api_response = None
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Show selected model
+    if st.session_state.selected_model:
+        st.info(f"Selected Model: {st.session_state.selected_model}")
+    
+    # Process the file with the API when a model is selected
+    if st.session_state.selected_model and not st.session_state.api_response:
+        try:
+            # Create a temporary file for API upload
+            temp_file = "temp_random_test_samples.csv"
+            df.to_csv(temp_file, index=False)
+            
+            with open(temp_file, 'rb') as f:
+                files = {"csv_file": f}
+                data = {"model": st.session_state.selected_model}
+                with st.spinner("Processing CSV with the API..."):
+                    response = requests.post(api_url, files=files, data=data)
+            
+            # Clean up temporary file
+            os.remove(temp_file)
+            
+            if response.status_code == 200:
+                result = response.json()
+                st.success(f"CSV processed successfully!")
+                st.session_state.api_response = result
+                
+                # Display API response information
+                if result.get("status") == "success":
+                    # Show model information
+                    st.markdown(f'<div class="model-info">Model Used: {result.get("model_used", "Unknown")}</div>', unsafe_allow_html=True)
+                    
+                    # Show data summary
+                    if "data_summary" in result:
+                        summary = result["data_summary"]
+                        st.markdown("### Data Summary")
+                        st.markdown(f'<div class="summary-box">', unsafe_allow_html=True)
+                        st.write(f"Total Rows: {summary.get('total_rows', 'N/A')}")
+                        st.write(f"Numeric Columns: {', '.join(summary.get('numeric_columns', []))}")
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    # Show predictions
+                    st.markdown("### Predictions")
+                    if "predictions" in result and "prediction_labels" in result:
+                        for i, (pred, label) in enumerate(zip(result["predictions"], result["prediction_labels"])):
+                            st.write(f"Row {i+1}: {pred} ({label})")
+                
+                st.json(result)
+            else:
+                st.error(f"Error: {response.status_code} - {response.text}")
+        except Exception as e:
+            st.error(f"Error connecting to API: {e}")
     
     # Plot rows as individual plots
     st.subheader("Row Signal Visualizations")
@@ -176,6 +262,7 @@ if uploaded_file is not None:
             # Add the prediction or placeholder based on API response
             if st.session_state.api_response and 'predictions' in st.session_state.api_response and i < len(st.session_state.api_response['predictions']):
                 prediction = st.session_state.api_response['predictions'][i]
+                label = st.session_state.api_response['prediction_labels'][i]
                 
                 # Determine the appropriate CSS class based on prediction content
                 prediction_class = "prediction "
@@ -186,7 +273,7 @@ if uploaded_file is not None:
                 elif "tumor" in prediction.lower():
                     prediction_class += "prediction-tumor"
                 
-                st.markdown(f'<div class="{prediction_class}">{prediction}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="{prediction_class}">{prediction} ({label})</div>', unsafe_allow_html=True)
             else:
                 st.markdown('<div class="status-placeholder">Waiting for prediction...</div>', unsafe_allow_html=True)
             
@@ -194,6 +281,8 @@ if uploaded_file is not None:
             st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.write("No numeric columns found for plotting row signals.")
+except Exception as e:
+    st.error(f"Error loading CSV file: {e}")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
