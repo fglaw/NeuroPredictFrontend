@@ -1,291 +1,295 @@
+# app.py
 import streamlit as st
 import requests
-import json
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-from datetime import datetime, timedelta
-import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.graph_objects as go
 
-# Set page configuration - MUST be the first Streamlit command
+# Page setup
 st.set_page_config(
-    page_title="CSV Processor App",
-    page_icon="📊",
-    layout="centered",
-    initial_sidebar_state="collapsed",
+    page_title="NeuroPredict: ML EEG Classification",
+    layout="wide"
 )
 
-# Custom CSS
+st.markdown(
+    """
+    <style>
+    .main-header {
+        text-align: center;
+        font-size: 32px; /* Adjust size if needed */
+        font-weight: bold;
+        color: black; /* Change color if necessary */
+        margin-top: 20px; /* Adjust spacing */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown('<h1 class="main-header">NeuroPredict: Machine Learning EEG Classification</h1>', unsafe_allow_html=True)
+# # Title and headers
+# st.markdown('<h1 class="main-header">NeuroPredict: Machine Learning EEG Classification </h1>', unsafe_allow_html=True)
+# #st.markdown('<p class="sub-header">Select an ML model to analyze EEG data</p>', unsafe_allow_html=True)
+
+
+
+# Custom CSS to move the title to the top-left corner
+# st.markdown(
+#     """
+#     <style>
+#     .title {
+#         position: absolute;
+#         top: 10px;
+#         left: 20px;
+#         font-size: 30px;
+#         font-weight: bold;
+#         color: black;
+#     }
+#     </style>
+#     <div class="title">NeuroPredict: ML EEG Classification</div>
+#     """,
+#     unsafe_allow_html=True
+# )
+
+
+
+# Custom CSS stays unchanged
 st.markdown("""
 <style>
-    .main-header {
-        font-size: 3rem !important;
-        color: #4682B4;
-    }
-    .sub-header {
-        font-size: 1.5rem !important;
-        color: #708090;
-    }
-    .api-section {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-    .plot-container {
-        background-color: #f0f8ff;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        border: 1px solid #d1e3fa;
-    }
-    .status-placeholder {
-        background-color: #e6e6e6;
-        padding: 8px;
-        border-radius: 4px;
-        color: #666;
-        margin-top: 10px;
-    }
-    .prediction {
-        padding: 8px;
-        border-radius: 4px;
-        color: #333;
-        font-weight: 500;
-        margin-top: 10px;
-    }
-    .prediction-healthy {
-        background-color: #90EE90; /* Light green */
-    }
-    .prediction-tumor {
-        background-color: #FFFF99; /* Light yellow */
-    }
-    .prediction-seizure {
-        background-color: #FFCCCC; /* Light red */
-    }
-    .button-container {
-        display: flex;
-        gap: 10px;
-        margin: 20px 0;
-    }
-    .stButton>button {
-        flex: 1;
-        background-color: #4682B4;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    .stButton>button:hover {
-        background-color: #357ABD;
-    }
-    .summary-box {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 10px 0;
-        border: 1px solid #dee2e6;
-    }
-    .model-info {
-        background-color: #e3f2fd;
-        padding: 10px;
-        border-radius: 5px;
-        margin: 10px 0;
-        color: #1976d2;
-    }
+    .main-header { font-size:3rem!important; color:#000000; font-weight:bold; }
+    .sub-header { font-size:1.5rem!important; color:#FFFFFF; font-weight:bold; }
+    .plot-container { background:#f0f8ff; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #d1e3fa; }
+    .prediction { padding:8px; border-radius:4px; color:#333; font-weight:500; margin-top:10px; }
+    .prediction-healthy { background:#90EE90; }
+    .prediction-tumor { background:#FFFF99; }
+    .prediction-seizure { background:#FFCCCC; }
 </style>
 """, unsafe_allow_html=True)
 
-# Main app
-st.markdown('<h1 class="main-header">CSV Processor 📊</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">Analyzing EEG data from random_test_samples.csv</p>', unsafe_allow_html=True)
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)),
+                    url("https://res.cloudinary.com/dim47nr4g/image/upload/v1743005821/NeuroPredictWebimage_c8rbeo.jpg")
+                    no-repeat center center fixed;
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-# Add a divider
+
 st.markdown("---")
 
-# API Connection section
-st.markdown('<div class="api-section">', unsafe_allow_html=True)
-st.subheader("Process CSV File")
 
-api_url = st.text_input("FastAPI URL", "https://neuropredict-api-773733892552.us-central1.run.app/")
-
-# Initialize session state for API response and selected model
-if 'api_response' not in st.session_state:
-    st.session_state.api_response = None
-if 'selected_model' not in st.session_state:
-    st.session_state.selected_model = None
-
-# Load the CSV file directly
-try:
-    df = pd.read_csv("data/random_test_samples.csv")
-    st.write("Preview of the CSV data:")
-    st.dataframe(df.head(5))
-    
-    # Add model selection buttons
-    st.markdown('<div class="button-container">', unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if st.button("Model 1", key="model1"):
-            st.session_state.selected_model = 1
-            st.session_state.api_response = None
-    
-    with col2:
-        if st.button("Model 2", key="model2"):
-            st.session_state.selected_model = 2
-            st.session_state.api_response = None
-    
-    with col3:
-        if st.button("Model 3", key="model3"):
-            st.session_state.selected_model = 3
-            st.session_state.api_response = None
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Show selected model
-    if st.session_state.selected_model:
-        st.info(f"Selected Model: {st.session_state.selected_model}")
-    
-    # Process the file with the API when a model is selected
-    if st.session_state.selected_model and not st.session_state.api_response:
-        try:
-            # Create a temporary file for API upload
-            temp_file = "temp_random_test_samples.csv"
-            df.to_csv(temp_file, index=False)
-            
-            with open(temp_file, 'rb') as f:
-                files = {"csv_file": f}
-                data = {"model": st.session_state.selected_model}
-                with st.spinner("Processing CSV with the API..."):
-                    response = requests.post(api_url, files=files, data=data)
-            
-            # Clean up temporary file
-            os.remove(temp_file)
-            
-            if response.status_code == 200:
-                result = response.json()
-                st.success(f"CSV processed successfully!")
-                st.session_state.api_response = result
-                
-                # Display API response information
-                if result.get("status") == "success":
-                    # Show model information
-                    st.markdown(f'<div class="model-info">Model Used: {result.get("model_used", "Unknown")}</div>', unsafe_allow_html=True)
-                    
-                    # Show data summary
-                    if "data_summary" in result:
-                        summary = result["data_summary"]
-                        st.markdown("### Data Summary")
-                        st.markdown(f'<div class="summary-box">', unsafe_allow_html=True)
-                        st.write(f"Total Rows: {summary.get('total_rows', 'N/A')}")
-                        st.write(f"Numeric Columns: {', '.join(summary.get('numeric_columns', []))}")
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    # Show predictions
-                    st.markdown("### Predictions")
-                    if "predictions" in result and "prediction_labels" in result:
-                        for i, (pred, label) in enumerate(zip(result["predictions"], result["prediction_labels"])):
-                            st.write(f"Row {i+1}: {pred} ({label})")
-                
-                st.json(result)
-            else:
-                st.error(f"Error: {response.status_code} - {response.text}")
-        except Exception as e:
-            st.error(f"Error connecting to API: {e}")
-    
-    # Plot rows as individual plots
-    st.subheader("Row Signal Visualizations")
-    
-    # Filter to only include numeric columns for plotting
-    numeric_df = df.select_dtypes(include=np.number)
-    
-    if not numeric_df.empty:
-        # Get the first 6 rows for visualization
-        rows_to_plot = min(6, len(numeric_df))
-        
-        # Create time points starting from 1
-        time_points = np.arange(1, len(numeric_df.columns) + 1)
-        
-        # Create individual plots for each row with status directly below
-        for i in range(rows_to_plot):
-            # Create container for this row's plot and status
-            st.markdown(f'<div class="plot-container">', unsafe_allow_html=True)
-            
-            # Row identifier
-            if 'name' in df.columns or 'id' in df.columns or 'title' in df.columns:
-                id_col = next((col for col in df.columns if col.lower() in ['name', 'id', 'title']), None)
-                row_name = f"Row {i+1}: {df.iloc[i][id_col]}"
-            else:
-                row_name = f"Row {i+1}"
-            
-            st.write(f"**{row_name}**")
-            
-            # Create plot for this row
-            fig, ax = plt.subplots(figsize=(10, 4))
-            
-            # Get row values
-            row_values = numeric_df.iloc[i].values
-            
-            # Plot as a line (signal-like visualization) using time points
-            ax.plot(time_points, row_values, linewidth=2)
-            
-            # Set x-ticks for all time points but only show labels at positions 1, 10, 20, etc.
-            ax.set_xticks(time_points)
-            
-            # Create custom tick labels showing only at intervals of 10
-            tick_labels = []
-            for t in time_points:
-                if t == 1 or t % 10 == 0:
-                    tick_labels.append(str(int(t)))
-                else:
-                    tick_labels.append('')
-            
-            ax.set_xticklabels(tick_labels)
-            
-            # Add grid for better readability
-            ax.grid(True, linestyle='--', alpha=0.7)
-            
-            # Set title and labels
-            ax.set_title(f'Signal for {row_name}', fontsize=12)
-            ax.set_ylabel('Amplitude', fontsize=10)
-            ax.set_xlabel('Time', fontsize=10)
-            
-            # Adjust layout
-            plt.tight_layout()
-            
-            # Display the plot in this container
-            st.pyplot(fig)
-            plt.close(fig)  # Close to avoid the warning
-            
-            # Add the prediction or placeholder based on API response
-            if st.session_state.api_response and 'predictions' in st.session_state.api_response and i < len(st.session_state.api_response['predictions']):
-                prediction = st.session_state.api_response['predictions'][i]
-                label = st.session_state.api_response['prediction_labels'][i]
-                
-                # Determine the appropriate CSS class based on prediction content
-                prediction_class = "prediction "
-                if "healthy" in prediction.lower():
-                    prediction_class += "prediction-healthy"
-                elif "tumor-induced seizure" in prediction.lower():
-                    prediction_class += "prediction-seizure"
-                elif "tumor" in prediction.lower():
-                    prediction_class += "prediction-tumor"
-                
-                st.markdown(f'<div class="{prediction_class}">{prediction} ({label})</div>', unsafe_allow_html=True)
-            else:
-                st.markdown('<div class="status-placeholder">Waiting for prediction...</div>', unsafe_allow_html=True)
-            
-            # Close the plot container
-            st.markdown('</div>', unsafe_allow_html=True)
-    else:
-        st.write("No numeric columns found for plotting row signals.")
-except Exception as e:
-    st.error(f"Error loading CSV file: {e}")
-
-st.markdown('</div>', unsafe_allow_html=True)
+# # # Button interactions for selecting ML model
+model_selected = None
+col1, col2, col3, col4, col5 = st.columns(5)
+with col2:
+    if st.button("🔵 XGBoost"):
+        model_selected = "XGBoost"
+with col3:
+    if st.button("🟡 Rocket"):
+        model_selected = "Rocket"
+with col4:
+    if st.button("🔴 LTSM-Rocket Hybrid"):
+        model_selected = "Hybrid"
 
 
+# For this example, we'll plot Sample 1 (the 0/3/5 row of the DataFrame)
+prediction_data = pd.read_csv('./data/prediction_data.csv')
+sample1 = prediction_data.iloc[0]
+sample2 = prediction_data.iloc[3]
+sample3 = prediction_data.iloc[5]
+scale_factor = 178
+time_points = prediction_data.columns
+time_in_seconds = [i / scale_factor*60 for i in range(len(time_points))]
 
+# Create a Plotly figure
+fig1 = go.Figure()
+fig2 = go.Figure()
+fig3 = go.Figure()
 
+##########################################################################
+#####################    Seaborn  #######################################
+#########################################################################
+
+# Extract three samples (for demonstration)
+sample1 = prediction_data.iloc[0]
+sample2 = prediction_data.iloc[3]
+sample3 = prediction_data.iloc[5]
+
+# Define the scale factor and convert time points to "ms" (or seconds as needed)
+scale_factor = 178
+time_points = prediction_data.columns
+time_in_seconds = [i / scale_factor * 60 for i in range(len(time_points))]
+
+# Set the Seaborn theme to "white" for a clean look.
+sns.set_theme(style="white")
+
+# Helper function to create a custom EEG plot
+def create_eeg_plot(x, y, title,  width=5, height=5,y_min=None, y_max=None):  #(10,6)
+    fig, ax = plt.subplots(figsize=(width, height))
+
+    # Plot the data: black line with turquoise circular markers
+    ax.plot(x, y,
+            color='black', linewidth=2,
+            marker='o', markersize=4, markerfacecolor='turquoise')
+
+    # Customize title and axis labels
+    ax.set_title(title)
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Amplitude (µV)")
+    # Remove gridlines
+    ax.grid(False)
+     # Set custom y-axis limits if provided
+    if y_min is not None and y_max is not None:
+        ax.set_ylim(y_min, y_max)
+
+    # Remove all spines (plot borders)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    # Optionally add zero lines (dashed)
+    ax.axhline(0, color='black', linewidth=1, linestyle='--')
+    ax.axvline(0, color='black', linewidth=1, linestyle='--')
+
+    return fig, ax
+
+# Create three separate figures with different titles
+fig1, ax1 = create_eeg_plot(time_in_seconds, sample1, "EEG Signal for tumor-induced seizure", y_min=-1500, y_max=1000)
+fig2, ax2 = create_eeg_plot(time_in_seconds, sample2, "EEG Signal for tumor baseline", y_min=-500, y_max=500)
+fig3, ax3 = create_eeg_plot(time_in_seconds, sample3, "EEG Signal for healthy baseline", y_min=-500, y_max=500)
+
+##########################################################################
+#######################     Plotly                 #######################
+##########################################################################
+# Plot the line graph for Sample 1
+# fig1.add_trace(go.Scatter(
+#     x=time_in_seconds,  # The time points (columns)
+#     y=sample1,  # The EEG data for Sample 1
+#     mode='lines+markers',  # Line plot with markers
+#     #name='Sample 1',  # Name for the legend
+#     line=dict(color='black', width=2),  # Line color and width
+#     marker=dict(size=4, color='turquoise', symbol='circle'),  # Marker style
+# ))
+
+# fig2.add_trace(go.Scatter(
+#     x=time_in_seconds,  # The time points (columns)
+#     y=sample2,  # The EEG data for Sample 1
+#     mode='lines+markers',  # Line plot with markers
+#     #name='Sample 1',  # Name for the legend
+#     line=dict(color='black', width=2),  # Line color and width
+#     marker=dict(size=4, color='turquoise', symbol='circle'),  # Marker style
+# ))
+
+# fig3.add_trace(go.Scatter(
+#     x=time_in_seconds,  # The time points (columns)
+#     y=sample3,  # The EEG data for Sample 1
+#     mode='lines+markers',  # Line plot with markers
+#     #name='Sample 1',  # Name for the legend
+#     line=dict(color='black', width=2),  # Line color and width
+#     marker=dict(size=4, color='turquoise', symbol='circle'),  # Marker style
+# ))
+
+# # Customize layout
+# def customize_layout(fig, title, width=400, height=300):
+#     fig.update_layout(
+#     title=title,
+#     xaxis_title="Time (ms)",
+#     yaxis_title="Amplitude (µV)",
+#     template="plotly_white",  # Optional: Choose a dark theme for the plot
+#     hovermode="closest",  # Show the nearest data point on hover
+#     showlegend=False, # Show legend
+#     xaxis=dict(
+#         showgrid=False,  zeroline=True),
+#     yaxis=dict(showgrid=False,  zeroline=True),
+#     width=width,
+#     height=height
+#     )
+
+# customize_layout(fig1,"EEG Signal for tumor-induced seizure")
+# customize_layout(fig2,"EEG Signal for tumor baseline ")
+# customize_layout(fig3,"EEG Signal for healthy baseline ")
+
+###########################################################################
+###########################################################################
+
+# # Streamlit layout: Display 3 plots horizontally in one row
+# col1, col2, col3 = st.columns(3)
+
+# # Display each figure in its respective column
+# with col1:
+#     st.plotly_chart(fig1)
+
+# with col2:
+#     st.plotly_chart(fig2)
+
+# with col3:
+#     st.plotly_chart(fig3)
+
+st.markdown("---")
+
+# Container for plotting and API response
+response_container = st.container()
+
+if model_selected:
+    try:
+        with st.spinner(f"Processing data using {model_selected.capitalize()} Model..."):
+            # API request sending model selection
+            response = requests.get("https://neuropred-631627542868.europe-west1.run.app/predict", params={"model": model_selected})
+
+        if response.status_code == 200:
+            result = response.json()
+            prediction_texts = result["predictions"]
+
+        # Ensure the response contains predictions
+        if prediction_texts:
+            with st.container():  # Response container for the layout
+            # Display 3 plots horizontally in one row
+                col1, col2, col3 = st.columns(3)
+
+            # Display each figure in its respective column
+            with col1:
+                st.pyplot(fig1)    #  fig1 Seaborn figure
+                #st.plotly_chart(fig1)  #  fig1 Plotly figure
+                st.markdown(f'<div class="{prediction_texts[0]}">{prediction_texts[0]}</div>', unsafe_allow_html=True)
+
+            with col2:
+                st.pyplot(fig2)
+                #st.plotly_chart(fig2)  # Assuming fig2 is your Plotly figure
+                st.markdown(f'<div class="{prediction_texts[3]}">{prediction_texts[3]}</div>', unsafe_allow_html=True)
+
+            with col3:
+                st.pyplot(fig3)
+               # st.plotly_chart(fig3)  # Assuming fig3 is your Plotly figure
+                st.markdown(f'<div class="{prediction_texts[5]}">{prediction_texts[5]}</div>', unsafe_allow_html=True)
+
+        else:
+            st.error(f"API Error: {response.status_code}: {response.text}")
+
+    except Exception as e:
+        st.error(f"Error connecting to API: {str(e)}")
+
+else:
+    st.markdown(
+    """
+    <style>
+    .small-centered-text {
+        text-align: center;   /* Center the text */
+        font-size: 24px;      /* Make the font smaller (adjust as needed) */
+        color: black;         /* Customize color */
+    }
+    </style>
+    """,
+        unsafe_allow_html=True
+        )
+
+    st.markdown('<p class="small-centered-text">Please select an ML model above to get started.</p>', unsafe_allow_html=True)
+    #st.markdown('<h2 style="; color:#000000; font-weight:bold;">Please select an ML model above 👆🏼 to get started.</h2>', unsafe_allow_html=True)
