@@ -72,7 +72,7 @@ st.markdown(
     f"""
     <style>
     .stApp {{
-        background: 
+        background:
             /* Grey overlay (increased opacity to 0.7 for more grey effect) */
             linear-gradient(rgba(128, 128, 128, 0.7), rgba(128, 128, 128, 0.7)),
             /* Background image */
@@ -294,5 +294,5 @@ else:
         unsafe_allow_html=True
         )
 
-    st.markdown('<p class="small-centered-text">Please select an ML model above to get started.</p>', unsafe_allow_html=True)
+    st.markdown('<h2 style="text-align: center;">Please select an ML model above to get started.</h2>', unsafe_allow_html=True)
     #st.markdown('<h2 style="; color:#000000; font-weight:bold;">Please select an ML model above 👆🏼 to get started.</h2>', unsafe_allow_html=True)
