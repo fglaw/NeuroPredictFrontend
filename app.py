@@ -98,7 +98,7 @@ with col3:
     if st.button("🟡 Rocket"):
         model_selected = "Rocket"
 with col4:
-    if st.button("🔴 LTSM-Rocket Hybrid"):
+    if st.button("🔴 LSTM-Rocket Hybrid"):
         model_selected = "Hybrid"
 
 
@@ -276,6 +276,7 @@ if model_selected:
 
     except Exception as e:
         st.error(f"Error connecting to API: {str(e)}")
+
 
 else:
     st.markdown(
