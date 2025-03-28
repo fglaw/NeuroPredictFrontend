@@ -119,6 +119,7 @@ fig1 = go.Figure()
 fig2 = go.Figure()
 fig3 = go.Figure()
 
+
 ##########################################################################
 #####################    Seaborn  #######################################
 #########################################################################
@@ -162,7 +163,7 @@ def create_eeg_plot(x, y, title,  width=5, height=5,y_min=None, y_max=None):  #(
     # Optionally add zero lines (dashed)
     ax.axhline(0, color='black', linewidth=1, linestyle='--')
     ax.axvline(0, color='black', linewidth=1, linestyle='--')
-
+    fig.tight_layout()
     return fig, ax
 
 # Create three separate figures with different titles
@@ -170,7 +171,26 @@ fig1, ax1 = create_eeg_plot(time_in_seconds, sample1, "EEG Signal for tumor-indu
 fig2, ax2 = create_eeg_plot(time_in_seconds, sample2, "EEG Signal for tumor baseline", y_min=-500, y_max=500)
 fig3, ax3 = create_eeg_plot(time_in_seconds, sample3, "EEG Signal for healthy baseline", y_min=-500, y_max=500)
 
-##########################################################################
+#################################################################
+################# Create ✅ / ❌ signs ##########################
+##################################################################
+
+model_performance = {
+    "XGBoost": [True, True, False],
+    "Rocket": [True, False, True],
+    "Hybrid": [True, True, False]
+}
+
+# Helper function to add an icon based on correctness.
+def add_icon(text, is_correct):
+    if is_correct:
+        icon = '<span style="color: #00FF00 !important; font-weight: bold;">✅</span>'
+    else:
+        icon = '<span style="color:red;">❌</span>'
+    return f"{icon} {text}"
+
+
+# ########################################################################
 #######################     Plotly                 #######################
 ##########################################################################
 # Plot the line graph for Sample 1
@@ -252,27 +272,53 @@ if model_selected:
             result = response.json()
             prediction_texts = result["predictions"]
 
-        # Ensure the response contains predictions
         if prediction_texts:
+            # Get the correctness status list for the chosen model.
+            correctness = model_performance.get(model_selected, [False, False, False])
+
             with st.container():  # Response container for the layout
-            # Display 3 plots horizontally in one row
+                # Display 3 plots horizontally in one row.
                 col1, col2, col3 = st.columns(3)
 
-            # Display each figure in its respective column
             with col1:
-                st.pyplot(fig1)    #  fig1 Seaborn figure
-                #st.plotly_chart(fig1)  #  fig1 Plotly figure
-                st.markdown(f'<div class="{prediction_texts[0]}">{prediction_texts[0]}</div>', unsafe_allow_html=True)
+                st.pyplot(fig1)
+                st.markdown(f'<div>{add_icon(prediction_texts[0], correctness[0])}</div>',
+                unsafe_allow_html=True
+                )
 
             with col2:
                 st.pyplot(fig2)
-                #st.plotly_chart(fig2)  # Assuming fig2 is your Plotly figure
-                st.markdown(f'<div class="{prediction_texts[3]}">{prediction_texts[3]}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div>{add_icon(prediction_texts[3], correctness[1])}</div>',
+                unsafe_allow_html=True
+                )
 
             with col3:
                 st.pyplot(fig3)
-               # st.plotly_chart(fig3)  # Assuming fig3 is your Plotly figure
-                st.markdown(f'<div class="{prediction_texts[5]}">{prediction_texts[5]}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div>{add_icon(prediction_texts[5], correctness[2])}</div>',
+                unsafe_allow_html=True
+                )
+
+        # # Ensure the response contains predictions
+        # if prediction_texts:
+        #     with st.container():  # Response container for the layout
+        #     # Display 3 plots horizontally in one row
+        #         col1, col2, col3 = st.columns(3)
+
+        #     # Display each figure in its respective column
+        #     with col1:
+        #         st.pyplot(fig1)    #  fig1 Seaborn figure
+        #         #st.plotly_chart(fig1)  #  fig1 Plotly figure
+        #         st.markdown(f'<div class="{prediction_texts[0]}">{prediction_texts[0]}</div>', unsafe_allow_html=True)
+
+        #     with col2:
+        #         st.pyplot(fig2)
+        #         #st.plotly_chart(fig2)  # Assuming fig2 is your Plotly figure
+        #         st.markdown(f'<div class="{prediction_texts[3]}">{prediction_texts[3]}</div>', unsafe_allow_html=True)
+
+        #     with col3:
+        #         st.pyplot(fig3)
+        #        # st.plotly_chart(fig3)  # Assuming fig3 is your Plotly figure
+        #         st.markdown(f'<div class="{prediction_texts[5]}">{prediction_texts[5]}</div>', unsafe_allow_html=True)
 
         else:
             st.error(f"API Error: {response.status_code}: {response.text}")
