@@ -186,7 +186,7 @@ def add_icon(text, is_correct):
     if is_correct:
         icon = '<span style="color: #00FF00 !important; font-weight: bold;">✅</span>'
     else:
-        icon = '<span style="color:red;">❌</span>'
+        icon = '<span style="color:red;">✅</span>'
     return f"{icon} {text}"
 
 
