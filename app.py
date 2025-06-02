@@ -76,7 +76,7 @@ st.markdown(
             /* Grey overlay (increased opacity to 0.7 for more grey effect) */
             /*linear-gradient(rgba(128, 128, 128, 0.7), rgba(128, 128, 128, 0.7)),*/
             /* Background image */
-            url("https://res.cloudinary.com/dim47nr4g/image/upload/v1748875027/background_image_for_NeuroPredict_vgcolz_f7de00.png")
+            url("https://res.cloudinary.com/dim47nr4g/image/upload/v1748875840/NeuroPredict_Streamlit_background_image_ntujum.png")
             no-repeat center center fixed;
         background-size: cover;
         /*background-position: center center;*/
