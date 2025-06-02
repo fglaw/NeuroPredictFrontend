@@ -59,7 +59,7 @@ st.markdown('<h1 class="main-header">NeuroPredict: Machine Learning EEG Classifi
 st.markdown("""
 <style>
     .main-header { font-size:3rem!important; color:white !important; font-weight:bold; }
-    .sub-header { font-size:1.5rem!important; color:#FFFFFF !important; font-weight:bold; }
+    .sub-header { font-size:1.5rem!important; color:white !important; font-weight:bold; }
     .plot-container { background:#f0f8ff; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #d1e3fa; }
     .prediction { padding:8px; border-radius:4px; color:#333; font-weight:500; margin-top:10px; }
     .prediction-healthy { background:#90EE90; }
@@ -340,5 +340,5 @@ else:
         unsafe_allow_html=True
         )
 
-    st.markdown('<h2 style="text-align: center;">Please select an ML model above to get started.</h2>', unsafe_allow_html=True)
-    #st.markdown('<h2 style="; color:#000000; font-weight:bold;">Please select an ML model above 👆🏼 to get started.</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="text-align: center; color: white;">Please select an ML model above 👆🏼 to get started.</h2>', unsafe_allow_html=True)
+    #st.markdown('<h2 style="; color:#000000; font-weight:bold;">Please select an ML model above  to get started.</h2>', unsafe_allow_html=True)
