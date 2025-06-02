@@ -20,7 +20,7 @@ st.markdown(
         text-align: center;
         font-size: 32px; /* Adjust size if needed */
         font-weight: bold;
-        color: white; /* Change color if necessary */
+        color: #ffffff; /* Change color if necessary */
         margin-top: 20px; /* Adjust spacing */
     }
     </style>
