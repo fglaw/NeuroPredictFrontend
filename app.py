@@ -20,7 +20,7 @@ st.markdown(
         text-align: center;
         font-size: 32px; /* Adjust size if needed */
         font-weight: bold;
-        color: white; /* Change color if necessary */
+        color: white !important; /* Change color if necessary */
         margin-top: 20px; /* Adjust spacing */
     }
     </style>
@@ -58,8 +58,8 @@ st.markdown('<h1 class="main-header">NeuroPredict: Machine Learning EEG Classifi
 # Custom CSS stays unchanged
 st.markdown("""
 <style>
-    .main-header { font-size:3rem!important; color:#ffffff; font-weight:bold; }
-    .sub-header { font-size:1.5rem!important; color:#FFFFFF; font-weight:bold; }
+    .main-header { font-size:3rem!important; color:white !important; font-weight:bold; }
+    .sub-header { font-size:1.5rem!important; color:#FFFFFF !important; font-weight:bold; }
     .plot-container { background:#f0f8ff; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #d1e3fa; }
     .prediction { padding:8px; border-radius:4px; color:#333; font-weight:500; margin-top:10px; }
     .prediction-healthy { background:#90EE90; }
