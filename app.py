@@ -73,8 +73,7 @@ st.markdown(
     <style>
     .stApp {{
         background:
-            /* Grey overlay (increased opacity to 0.7 for more grey effect) */
-            /*linear-gradient(rgba(128, 128, 128, 0.7), rgba(128, 128, 128, 0.7)),*/
+            linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)),
             /* Background image */
             url("https://res.cloudinary.com/dim47nr4g/image/upload/v1748875840/NeuroPredict_Streamlit_background_image_ntujum.png")
             no-repeat center center fixed;
