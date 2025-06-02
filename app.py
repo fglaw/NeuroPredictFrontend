@@ -77,7 +77,7 @@ st.markdown(
             /*linear-gradient(rgba(128, 128, 128, 0.7), rgba(128, 128, 128, 0.7)),*/
             /* Background image */
             url("https://res.cloudinary.com/dim47nr4g/image/upload/v1748875840/NeuroPredict_Streamlit_background_image_ntujum.png")
-            /*no-repeat center center fixed;*/
+            no-repeat center center fixed;
         background-size: cover;
         background-position: center center;
         background-repeat: no-repeat;
