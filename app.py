@@ -79,7 +79,7 @@ st.markdown(
             url("https://res.cloudinary.com/dim47nr4g/image/upload/v1743005821/NeuroPredictWebimage_c8rbeo.jpg")
             no-repeat center center fixed;
         background-size: cover;
-        background-position: center center;
+        /*background-position: center center;*/
         background-repeat: no-repeat;
     }}
     </style>
