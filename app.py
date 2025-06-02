@@ -88,6 +88,24 @@ st.markdown(
 
 st.markdown("---")
 
+st.markdown("""
+<style>
+/* Thicker white border for all Streamlit buttons */
+.stButton > button {
+    border: 3px solid #fff !important;
+    border-radius: 8px !important;
+    font-weight: bold;
+    color: #222 !important;
+    background: rgba(255,255,255,0.85) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: border 0.2s;
+}
+.stButton > button:hover {
+    border: 3px solid #90cdf4 !important; /* Optional: blue border on hover */
+    background: #f0f8ff !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # # # Button interactions for selecting ML model
 model_selected = None
