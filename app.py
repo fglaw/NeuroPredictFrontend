@@ -101,7 +101,7 @@ st.markdown("""
     transition: border 0.2s;
 }
 .stButton > button:hover {
-    border: 3px solid #90cdf4 !important; /* Optional: blue border on hover */
+    border: 3px solid #FF5F1F !important; /* Optional: blue border on hover */
     background: #f0f8ff !important;
 }
 </style>
