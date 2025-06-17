@@ -278,13 +278,11 @@ st.markdown("---")
 # Container for plotting and API response
 response_container = st.container()
 
-# ...existing code...
 
 if model_selected:
-    prediction_texts = None  # Always define it first
+    prediction_texts = None
     try:
         with st.spinner(f"Processing data using {model_selected.capitalize()} Model..."):
-            # API request sending model selection
             response = requests.get("https://neuropred-631627542868.europe-west1.run.app/predict", params={"model": model_selected})
 
         if response.status_code == 200:
@@ -292,39 +290,18 @@ if model_selected:
             prediction_texts = result.get("predictions")
             if prediction_texts is None:
                 st.error(f"API did not return predictions: {result}")
+        elif response.status_code == 503:
+            st.warning("The prediction service is temporarily unavailable (Cloud Run is down or starting up). Please try again in a minute.")
         else:
             st.error(f"API Error: {response.status_code}: {response.text}")
 
         if prediction_texts:
-            # Get the correctness status list for the chosen model.
-            correctness = model_performance.get(model_selected, [False, False, False])
 
-            with st.container():  # Response container for the layout
-                # Display 3 plots horizontally in one row.
-                col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.pyplot(fig1)
-                st.markdown(f'<div>{add_icon(prediction_texts[0], correctness[0])}</div>',
-                unsafe_allow_html=True
-                )
-
-            with col2:
-                st.pyplot(fig2)
-                st.markdown(f'<div>{add_icon(prediction_texts[3], correctness[1])}</div>',
-                unsafe_allow_html=True
-                )
-
-            with col3:
-                st.pyplot(fig3)
-                st.markdown(f'<div>{add_icon(prediction_texts[5], correctness[2])}</div>',
-                unsafe_allow_html=True
-                )
+            pass
 
     except Exception as e:
         st.error(f"Error connecting to API: {str(e)}")
 
-# ...existing code...
 
 else:
     st.markdown(
