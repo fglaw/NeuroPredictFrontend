@@ -278,7 +278,10 @@ st.markdown("---")
 # Container for plotting and API response
 response_container = st.container()
 
+# ...existing code...
+
 if model_selected:
+    prediction_texts = None  # Always define it first
     try:
         with st.spinner(f"Processing data using {model_selected.capitalize()} Model..."):
             # API request sending model selection
@@ -286,7 +289,11 @@ if model_selected:
 
         if response.status_code == 200:
             result = response.json()
-            prediction_texts = result["predictions"]
+            prediction_texts = result.get("predictions")
+            if prediction_texts is None:
+                st.error(f"API did not return predictions: {result}")
+        else:
+            st.error(f"API Error: {response.status_code}: {response.text}")
 
         if prediction_texts:
             # Get the correctness status list for the chosen model.
@@ -314,33 +321,10 @@ if model_selected:
                 unsafe_allow_html=True
                 )
 
-        # # Ensure the response contains predictions
-        # if prediction_texts:
-        #     with st.container():  # Response container for the layout
-        #     # Display 3 plots horizontally in one row
-        #         col1, col2, col3 = st.columns(3)
-
-        #     # Display each figure in its respective column
-        #     with col1:
-        #         st.pyplot(fig1)    #  fig1 Seaborn figure
-        #         #st.plotly_chart(fig1)  #  fig1 Plotly figure
-        #         st.markdown(f'<div class="{prediction_texts[0]}">{prediction_texts[0]}</div>', unsafe_allow_html=True)
-
-        #     with col2:
-        #         st.pyplot(fig2)
-        #         #st.plotly_chart(fig2)  # Assuming fig2 is your Plotly figure
-        #         st.markdown(f'<div class="{prediction_texts[3]}">{prediction_texts[3]}</div>', unsafe_allow_html=True)
-
-        #     with col3:
-        #         st.pyplot(fig3)
-        #        # st.plotly_chart(fig3)  # Assuming fig3 is your Plotly figure
-        #         st.markdown(f'<div class="{prediction_texts[5]}">{prediction_texts[5]}</div>', unsafe_allow_html=True)
-
-        else:
-            st.error(f"API Error: {response.status_code}: {response.text}")
-
     except Exception as e:
         st.error(f"Error connecting to API: {str(e)}")
+
+# ...existing code...
 
 else:
     st.markdown(
